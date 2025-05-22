@@ -1,0 +1,33 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "API",
+            "type": "coreclr",
+            "request": "launch",
+            "preLaunchTask": "build-api",
+            "program": "${workspaceFolder}/GRAFF.TaskTracker.Api/bin/Debug/net9.0/GRAFF.TaskTracker.Api.dll",
+            "args": [],
+            "cwd": "${workspaceFolder}/GRAFF.TaskTracker.Api",
+            "stopAtEntry": false,
+            "console": "internalConsole",
+            "env": {
+                "ASPNETCORE_ENVIRONMENT": "Development"
+            }
+        },
+        {
+            "name": "Web",
+            "type": "coreclr",
+            "request": "launch",
+            "preLaunchTask": "build-web",
+            "program": "${workspaceFolder}/GRAFF.TaskTracker.Web/bin/Debug/net9.0/GRAFF.TaskTracker.Web.dll",
+            "args": [],
+            "cwd": "${workspaceFolder}/GRAFF.TaskTracker.Web",
+            "stopAtEntry": false,
+            "console": "internalConsole",
+            "env": {
+                "ASPNETCORE_ENVIRONMENT": "Development"
+            }
+        }
+    ]
+} 
