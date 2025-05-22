@@ -1,0 +1,54 @@
+{
+  "Version": 1,
+  "WorkspaceRootPath": "D:\\apps\\GRAFF.TaskTracker\\",
+  "Documents": [
+    {
+      "AbsoluteMoniker": "D:0:0:{CFCA555E-BE04-4C0E-9D60-AF95D34E00C8}|GRAFF.TaskTracker.Web\\GRAFF.TaskTracker.Web.csproj|d:\\apps\\graff.tasktracker\\graff.tasktracker.web\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{CFCA555E-BE04-4C0E-9D60-AF95D34E00C8}|GRAFF.TaskTracker.Web\\GRAFF.TaskTracker.Web.csproj|solutionrelative:graff.tasktracker.web\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{9521E59D-7364-4FD9-9338-74BB4E5BCF64}|GRAFF.TaskTracker.Models\\GRAFF.TaskTracker.Models.csproj|d:\\apps\\graff.tasktracker\\graff.tasktracker.models\\class1.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{9521E59D-7364-4FD9-9338-74BB4E5BCF64}|GRAFF.TaskTracker.Models\\GRAFF.TaskTracker.Models.csproj|solutionrelative:graff.tasktracker.models\\class1.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    }
+  ],
+  "DocumentGroupContainers": [
+    {
+      "Orientation": 0,
+      "VerticalTabListWidth": 256,
+      "DocumentGroups": [
+        {
+          "DockedWidth": 200,
+          "SelectedChildIndex": 0,
+          "Children": [
+            {
+              "$type": "Document",
+              "DocumentIndex": 0,
+              "Title": "Program.cs",
+              "DocumentMoniker": "D:\\apps\\GRAFF.TaskTracker\\GRAFF.TaskTracker.Web\\Program.cs",
+              "RelativeDocumentMoniker": "GRAFF.TaskTracker.Web\\Program.cs",
+              "ToolTip": "D:\\apps\\GRAFF.TaskTracker\\GRAFF.TaskTracker.Web\\Program.cs",
+              "RelativeToolTip": "GRAFF.TaskTracker.Web\\Program.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAoAAAAhAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-05-22T10:39:18.971Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 1,
+              "Title": "Class1.cs",
+              "DocumentMoniker": "D:\\apps\\GRAFF.TaskTracker\\GRAFF.TaskTracker.Models\\Class1.cs",
+              "RelativeDocumentMoniker": "GRAFF.TaskTracker.Models\\Class1.cs",
+              "ToolTip": "D:\\apps\\GRAFF.TaskTracker\\GRAFF.TaskTracker.Models\\Class1.cs",
+              "RelativeToolTip": "GRAFF.TaskTracker.Models\\Class1.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-05-22T10:38:45.714Z",
+              "EditorCaption": ""
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
