@@ -7,11 +7,11 @@
             "type": "process",
             "args": [
                 "watch",
-                "build",
-                "${workspaceFolder}/GRAFF.TaskTracker.Api/GRAFF.TaskTracker.Api.csproj",
-                "/property:GenerateFullPaths=true",
-                "/consoleloggerparameters:NoSummary"
+                "build"
             ],
+            "options": {
+                "cwd": "${workspaceFolder}/GRAFF.TaskTracker.Api"
+            },
             "problemMatcher": "$msCompile"
         },
         {
@@ -20,11 +20,11 @@
             "type": "process",
             "args": [
                 "watch",
-                "build",
-                "${workspaceFolder}/GRAFF.TaskTracker.Web/GRAFF.TaskTracker.Web.csproj",
-                "/property:GenerateFullPaths=true",
-                "/consoleloggerparameters:NoSummary"
+                "build"
             ],
+            "options": {
+                "cwd": "${workspaceFolder}/GRAFF.TaskTracker.Web"
+            },
             "problemMatcher": "$msCompile"
         },
         {

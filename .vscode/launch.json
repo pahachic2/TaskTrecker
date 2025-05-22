@@ -9,9 +9,7 @@
             "program": "dotnet",
             "args": [
                 "watch",
-                "run",
-                "--project",
-                "${workspaceFolder}/GRAFF.TaskTracker.Api/GRAFF.TaskTracker.Api.csproj"
+                "run"
             ],
             "cwd": "${workspaceFolder}/GRAFF.TaskTracker.Api",
             "stopAtEntry": false,
@@ -28,9 +26,7 @@
             "program": "dotnet",
             "args": [
                 "watch",
-                "run",
-                "--project",
-                "${workspaceFolder}/GRAFF.TaskTracker.Web/GRAFF.TaskTracker.Web.csproj"
+                "run"
             ],
             "cwd": "${workspaceFolder}/GRAFF.TaskTracker.Web",
             "stopAtEntry": false,
