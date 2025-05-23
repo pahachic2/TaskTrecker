@@ -1,4 +1,8 @@
 ﻿@inherits LayoutComponentBase
+@inject NavigationManager NavigationManager
+@inject IAuthService AuthService 
+@inject AuthenticationStateProvider AuthenticationStateProvider
+
 <div class="page">
     <div class="sidebar">
         <NavMenu />
@@ -6,7 +10,16 @@
 
     <main>
         <div class="top-row px-4">
-            <a href="https://learn.microsoft.com/aspnet/core/" target="_blank">About</a>
+            <AuthorizeView>
+                <Authorized>
+                    Hello, @context.User.Identity?.Name!
+                    <button class="btn btn-link" @onclick="HandleLogout">Log out</button>
+                </Authorized>
+                <NotAuthorized>
+                    <NavLink href="login">Log in</NavLink>
+                    <NavLink href="register" class="ml-2">Register</NavLink>
+                </NotAuthorized>
+            </AuthorizeView>
         </div>
 
         <article class="content px-4">
@@ -14,3 +27,17 @@
         </article>
     </main>
 </div>
+
+@code {
+    private async Task HandleLogout()
+    {
+        await AuthService.Logout();
+        NavigationManager.NavigateTo("/login"); // Ensure user is redirected after logout
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        await base.OnInitializedAsync();
+        AuthenticationStateProvider.AuthenticationStateChanged += async (state) => { await InvokeAsync(StateHasChanged); };
+    }
+}

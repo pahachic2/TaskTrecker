@@ -1,0 +1,61 @@
+@page "/login"
+@using GRAFF.TaskTracker.Web.Models // Using local DTOs
+@using GRAFF.TaskTracker.Web.Services
+@inject IAuthService AuthService
+@inject NavigationManager NavigationManager
+@inject AuthenticationStateProvider AuthenticationStateProvider // To refresh state
+
+<h3>Login</h3>
+
+@if (!string.IsNullOrEmpty(errorMessage))
+{
+    <div class="alert alert-danger">@errorMessage</div>
+}
+
+<EditForm Model="@loginModel" OnValidSubmit="HandleLogin">
+    <DataAnnotationsValidator />
+    <ValidationSummary />
+
+    <div class="form-group">
+        <label for="username">Username</label>
+        <InputText id="username" class="form-control" @bind-Value="loginModel.Username" />
+        <ValidationMessage For="@(() => loginModel.Username)" />
+    </div>
+
+    <div class="form-group">
+        <label for="password">Password</label>
+        <InputText id="password" type="password" class="form-control" @bind-Value="loginModel.Password" />
+        <ValidationMessage For="@(() => loginModel.Password)" />
+    </div>
+
+    <button type="submit" class="btn btn-primary" disabled="@isLoading">
+        @if (isLoading) { <span class="spinner-border spinner-border-sm"></span> }
+        Login
+    </button>
+    <NavLink href="register">Don't have an account? Register here.</NavLink>
+</EditForm>
+
+@code {
+    private LoginModel loginModel = new LoginModel();
+    private string? errorMessage;
+    private bool isLoading = false;
+
+    private async Task HandleLogin()
+    {
+        isLoading = true;
+        errorMessage = null;
+        var result = await AuthService.Login(loginModel);
+        if (result.Successful)
+        {
+            // It's important to ensure the auth state is updated across the app.
+            // The ApiAuthenticationStateProvider's MarkUserAsAuthenticated should trigger this.
+            // Then navigate.
+            NavigationManager.NavigateTo("/"); // Navigate to dashboard/home
+        }
+        else
+        {
+            errorMessage = result.ErrorMessage;
+        }
+        isLoading = false;
+    }
+}
