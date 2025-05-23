@@ -30,4 +30,7 @@ builder.Services.AddScoped<IProjectService, ProjectService>();
 builder.Services.AddScoped<IColumnService, ColumnService>();
 builder.Services.AddScoped<ITaskService, TaskService>();
 
+// Register Blazor.DragDrop service
+builder.Services.AddBlazorDragDrop();
+
 await builder.Build().RunAsync();

@@ -191,3 +191,187 @@ code {
 .form-group {
     margin-bottom: 1rem;
 }
+
+/* Responsive Design Adjustments */
+
+/* Extra small devices (portrait phones, less than 576px) */
+@media (max-width: 575.98px) {
+    /* Sidebar and Main Content Adjustments */
+    .sidebar {
+        /* The default Blazor template often handles sidebar toggling via JS and CSS classes.
+           If not using the default toggling mechanism, you might need:
+           display: none; or transform: translateX(-100%); for a hidden state */
+           /* For this example, we assume Bootstrap-like toggling or existing Blazor template behavior.
+           If the NavMenu becomes a top bar or a hamburger, its styles would go here.
+           Let's ensure the main content takes full width if sidebar is not fixed/visible. */
+    }
+
+    .main {
+        /* If sidebar is fixed and then hidden, main content might need margin adjustment */
+        /* margin-left: 0; */ /* If sidebar was pushing it */
+    }
+
+    .top-row {
+        /* Default Blazor template often makes this 'sticky' or 'fixed'.
+           If it contains NavMenu toggle, ensure it's visible and functional. */
+        /* Example: justify-content: space-between; if there's a title and a toggler */
+        padding-left: 0.5rem;
+        padding-right: 0.5rem;
+    }
+    
+    .top-row .btn-link, .top-row .ml-2 { /* Login/Register links */
+        font-size: 0.85rem;
+        padding: 0.25rem 0.5rem;
+    }
+    .top-row button.btn.btn-link { /* Logout button */
+        font-size: 0.85rem;
+         padding: 0.25rem 0.5rem;
+    }
+
+
+    /* Task Board Columns */
+    .columns-container {
+        flex-direction: column; /* Stack columns vertically */
+        align-items: stretch;   /* Make columns take full width available in the new flex direction */
+        overflow-x: hidden;   /* No horizontal scrolling for the container itself */
+        height: auto;         /* Allow container to grow vertically based on content */
+    }
+
+    .column {
+        width: 100%;          /* Columns take full width */
+        min-width: unset;     /* Remove min-width constraint */
+        max-width: 100%;      /* Allow full width */
+        margin-bottom: 1rem;  /* Add space between stacked columns */
+        max-height: none;     /* Allow columns to grow as needed for their tasks */
+    }
+
+    .tasks-list {
+        max-height: none;     /* Remove fixed max-height for tasks list when columns stack */
+        overflow-y: visible;  /* Tasks should not scroll independently within the column card */
+    }
+
+    /* Font and Element Size Adjustments */
+    h1, .h1 { font-size: 1.75rem; }
+    h3, .h3 { font-size: 1.25rem; } /* For "Create New Project" */
+    h4, .h4 { font-size: 1.15rem; } /* For "Columns" title on ProjectDetailPage */
+    h5, .h5 { font-size: 1.05rem; } /* Column titles */
+    h6, .h6 { font-size: 0.95rem; } /* Task titles */
+
+    .task-card {
+        font-size: 0.9rem; /* Slightly smaller font for task details */
+    }
+    .task-card .card-text {
+        font-size: 0.8rem;
+    }
+
+    .btn { /* Make buttons a bit smaller and ensure padding is manageable */
+        padding: 0.3rem 0.6rem;
+        font-size: 0.875rem;
+    }
+    .btn-sm {
+        padding: 0.2rem 0.4rem;
+        font-size: 0.75rem;
+    }
+    .form-control, .form-select { /* Affects inputs in forms */
+        font-size: 0.9rem;
+    }
+    .form-inline .form-control { /* Ensure inline form inputs are manageable */
+        max-width: 180px; /* Or adjust as needed */
+    }
+
+
+    /* Modal Adjustments */
+    .modal-dialog {
+        margin: 0.5rem; /* More space from screen edges */
+    }
+    .modal-content {
+        font-size: 0.9rem;
+    }
+    .modal-title {
+        font-size: 1.1rem;
+    }
+    .modal-body .form-group label {
+        font-size: 0.85rem;
+    }
+}
+
+/* Medium devices (tablets, 768px and up) */
+@media (min-width: 768px) {
+    .columns-container {
+        /* Revert to horizontal scrolling if it was changed for smaller screens,
+           but it's already horizontal by default. This is more for overriding. */
+        /* flex-direction: row; */ /* Already default */
+    }
+    .column {
+        /* min-width: 300px; /* Adjust as needed for tablets */
+        /* max-width: 300px; */
+    }
+}
+
+/* Ensure the sidebar has a sensible width and content pushes correctly */
+/* These are general styles that might be part of the default Blazor template
+   or might need to be added/adjusted. */
+
+.page {
+    display: flex;
+    flex-direction: row;
+    height: 100vh;
+}
+
+.sidebar {
+    background-image: linear-gradient(180deg, rgb(5, 39, 103) 0%, #3a0647 70%);
+    width: 250px; /* Default sidebar width */
+    height: 100vh;
+    position: sticky; /* Sticky sidebar */
+    top: 0;
+    transition: width 0.3s ease; /* Smooth transition for width changes */
+}
+
+.main {
+    flex-grow: 1;
+    overflow-y: auto; /* Allow content to scroll */
+    display: flex;
+    flex-direction: column;
+}
+
+.top-row {
+    background-color: #f7f7f7;
+    border-bottom: 1px solid #d6d5d5;
+    justify-content: flex-end; /* Default for larger screens */
+    height: 3.5rem;
+    display: flex;
+    align-items: center;
+    padding-left: 1.5rem;
+    padding-right: 1.5rem;
+}
+
+/* Hamburger menu (if you implement one, usually part of NavMenu or top-row) */
+.nav-toggle { /* Example class for a hamburger button */
+    display: none; /* Hidden on larger screens */
+}
+
+@media (max-width: 767.98px) { /* For tablets and phones */
+    .top-row {
+        justify-content: space-between; /* Space for title/logo and toggler */
+    }
+    
+    .sidebar {
+        /* Example: Fixed width when visible, or could be transformed off-screen */
+        /* width: 250px;  */
+        /* For a hidden-by-default sidebar that slides in: */
+        /* position: fixed; 
+           z-index: 1030; 
+           transform: translateX(-100%); 
+           transition: transform 0.3s ease-in-out; */
+    }
+    /* .sidebar.open { transform: translateX(0); } */
+
+    .nav-toggle {
+        display: block; /* Show hamburger */
+        /* Add styling for hamburger button */
+    }
+
+    /* If sidebar is not part of the flex layout of .page on small screens (e.g., fixed or absolute for toggling),
+       then .main doesn't need margin adjustments. If it *is* part of the flow and then hidden, .main might need
+       to expand. The default Blazor template handles this with CSS classes on .sidebar and .main. */
+}

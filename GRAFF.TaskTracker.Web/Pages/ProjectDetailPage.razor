@@ -2,10 +2,12 @@
 @attribute [Authorize]
 @using GRAFF.TaskTracker.Web.Models
 @using GRAFF.TaskTracker.Web.Services
+@using Blazor.DragDrop // For Drag and Drop
 @inject IProjectService ProjectService
 @inject IColumnService ColumnService
 @inject ITaskService TaskService
 @inject NavigationManager NavigationManager
+@inject IDragDropService DragDropService // Inject service
 
 <PageTitle>Project: @project?.Name</PageTitle>
 
@@ -28,23 +30,29 @@ else
     </div>
     @if (projectUpdateError != null) { <div class="alert alert-danger">@projectUpdateError</div> }
 
-
     <hr />
     <h4>Columns</h4>
     <div class="mb-3">
-        <EditForm Model="@newColumn" OnValidSubmit="HandleCreateColumn" class="form-inline">
-            <DataAnnotationsValidator />
-            <InputText @bind-Value="newColumn.Name" class="form-control mr-2" placeholder="New column name" />
-            <ValidationMessage For="@(() => newColumn.Name)" />
-            <button type="submit" class="btn btn-primary" disabled="@isCreatingColumn">
-                @if(isCreatingColumn) { <span class="spinner-border spinner-border-sm"></span> } Add Column
-            </button>
-        </EditForm>
-        @if (createColumnError != null) { <div class="alert alert-danger mt-1">@createColumnError</div> }
+        @if (project.Columns != null && project.Columns.Count < 10)
+        {
+            <EditForm Model="@newColumn" OnValidSubmit="HandleCreateColumn" class="form-inline">
+                <DataAnnotationsValidator />
+                <InputText @bind-Value="newColumn.Name" class="form-control mr-2" placeholder="New column name" />
+                <ValidationMessage For="@(() => newColumn.Name)" />
+                <button type="submit" class="btn btn-primary" disabled="@isCreatingColumn">
+                    @if(isCreatingColumn) { <span class="spinner-border spinner-border-sm"></span> } Add Column
+                </button>
+            </EditForm>
+            @if (createColumnError != null) { <div class="alert alert-danger mt-1">@createColumnError</div> }
+        }
+        else if (project.Columns != null && project.Columns.Count >= 10)
+        {
+            <div class="alert alert-info">Maximum number of columns (10) reached for this project.</div>
+        }
     </div>
 
     <div class="columns-container">
-        @if (project.Columns.Any())
+        @if (project.Columns != null && project.Columns.Any())
         {
             @foreach (var column in project.Columns.OrderBy(c => c.Order))
             {
@@ -69,30 +77,37 @@ else
                             @if(updateColumnError != null && currentlyUpdatingColumnId == column.ColumnId) { <div class="alert alert-danger p-1 mt-1" style="font-size:0.8em;">@updateColumnError</div>}
                         </div>
                     }
-                    <div class="card-body">
-                        <div class="tasks-list" style="max-height: 400px; overflow-y: auto;">
-                            @foreach (var task in column.Tasks.OrderBy(t => t.Order))
-                            {
-                                <div class="task-card card mb-2">
-                                    <div class="card-body">
-                                        <div class="d-flex justify-content-between">
-                                            <h6 class="card-title">@task.Title</h6>
-                                            <div>
-                                                <button class="btn btn-sm btn-outline-primary py-0 px-1" @onclick="() => StartEditTask(task)">✏️</button>
-                                                <button class="btn btn-sm btn-outline-danger py-0 px-1" @onclick="() => ConfirmDeleteTask(task)">🗑️</button>
+                    <div class="card-body d-flex flex-column">
+                        <DropZone TItem="TaskViewModel" Items="column.Tasks" OnItemDrop="args => HandleTaskDrop(column, args)" Accepts="@((draggedItem) => true)" Context="dropZoneContext">
+                            <div class="tasks-list flex-grow-1" style="max-height: 400px; overflow-y: auto; min-height:50px;">
+                                @if (column.Tasks != null)
+                                {
+                                    @foreach (var task in column.Tasks.OrderBy(t => t.Order))
+                                    {
+                                        <DragDropItem TItem="TaskViewModel" Item="task" Context="dragDropItemContext">
+                                            <div class="task-card card mb-2">
+                                                <div class="card-body">
+                                                    <div class="d-flex justify-content-between">
+                                                        <h6 class="card-title">@task.Title</h6>
+                                                        <div>
+                                                            <button class="btn btn-sm btn-outline-primary py-0 px-1" @onclick="() => StartEditTask(task)">✏️</button>
+                                                            <button class="btn btn-sm btn-outline-danger py-0 px-1" @onclick="() => ConfirmDeleteTask(task)">🗑️</button>
+                                                        </div>
+                                                    </div>
+                                                    <p class="card-text" style="font-size:0.9em;">@task.Description</p>
+                                                    @if (task.Deadline.HasValue)
+                                                    {
+                                                        <small class="text-muted">Deadline: @task.Deadline.Value.ToShortDateString()</small>
+                                                    }
+                                                </div>
                                             </div>
-                                        </div>
-                                        <p class="card-text" style="font-size:0.9em;">@task.Description</p>
-                                        @if (task.Deadline.HasValue)
-                                        {
-                                            <small class="text-muted">Deadline: @task.Deadline.Value.ToShortDateString()</small>
-                                        }
-                                    </div>
-                                </div>
-                            }
-                        </div>
-                        <div class="mt-2">
-                            <EditForm Model="newTaskForms[column.ColumnId]" OnValidSubmit="() => HandleCreateTask(column.ColumnId)" class="mt-auto pt-2 border-top">
+                                        </DragDropItem>
+                                    }
+                                }
+                            </div>
+                        </DropZone>
+                        <div class="mt-auto pt-2 border-top">
+                            <EditForm Model="newTaskForms[column.ColumnId]" OnValidSubmit="() => HandleCreateTask(column.ColumnId)">
                                 <DataAnnotationsValidator />
                                 <InputText @bind-Value="newTaskForms[column.ColumnId].Title" class="form-control form-control-sm mb-1" placeholder="New task title" />
                                 <ValidationMessage For="@(() => newTaskForms[column.ColumnId].Title)" />
@@ -119,7 +134,7 @@ else
     </div>
 }
 
-
+@* Modals for Project, Column, Task Deletion and Task Editing *@
 @if (projectToDelete != null)
 {
     <div class="modal fade show d-block" tabindex="-1" role="dialog">
@@ -168,6 +183,92 @@ else
     <div class="modal-backdrop fade show"></div>
 }
 
+@if (showEditTaskModal && taskToEdit != null)
+{
+    <div class="modal fade show d-block" tabindex="-1" role="dialog">
+        <div class="modal-dialog modal-lg" role="document">
+            <div class="modal-content">
+                <EditForm Model="taskUpdateModel" OnValidSubmit="HandleUpdateTask">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Edit Task: @taskToEdit.Title</h5>
+                        <button type="button" class="close" @onclick="() => showEditTaskModal = false"><span>&times;</span></button>
+                    </div>
+                    <div class="modal-body">
+                        <DataAnnotationsValidator />
+                        <ValidationSummary />
+                        <div class="form-group">
+                            <label>Title</label>
+                            <InputText @bind-Value="taskUpdateModel.Title" class="form-control" />
+                            <ValidationMessage For="@(() => taskUpdateModel.Title)" />
+                        </div>
+                        <div class="form-group">
+                            <label>Description</label>
+                            <InputTextArea @bind-Value="taskUpdateModel.Description" class="form-control" rows="3" />
+                        </div>
+                        <div class="form-group">
+                            <label>Deadline</label>
+                            <InputDate @bind-Value="taskUpdateModel.Deadline" class="form-control" />
+                        </div>
+                        <div class="form-group">
+                            <label>Column</label>
+                            <InputSelect @bind-Value="taskUpdateModel.ColumnId" class="form-control">
+                                @if(project != null)
+                                {
+                                    @foreach (var col in project.Columns)
+                                    {
+                                        <option value="@col.ColumnId">@col.Name</option>
+                                    }
+                                }
+                            </InputSelect>
+                        </div>
+                         @if (!string.IsNullOrEmpty(updateTaskError))
+                        {
+                            <div class="alert alert-danger">@updateTaskError</div>
+                        }
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" @onclick="() => showEditTaskModal = false">Cancel</button>
+                        <button type="submit" class="btn btn-primary" disabled="@isUpdatingTask">
+                            @if(isUpdatingTask) { <span class="spinner-border spinner-border-sm"></span> }
+                            Save Changes
+                        </button>
+                    </div>
+                </EditForm>
+            </div>
+        </div>
+    </div>
+    <div class="modal-backdrop fade show"></div>
+}
+
+@if (taskToDelete != null)
+{
+    <div class="modal fade show d-block" tabindex="-1" role="dialog">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Confirm Delete Task</h5>
+                    <button type="button" class="close" @onclick="() => taskToDelete = null"><span>&times;</span></button>
+                </div>
+                <div class="modal-body">
+                    <p>Are you sure you want to delete task "@taskToDelete.Title"?</p>
+                     @if (!string.IsNullOrEmpty(deleteTaskError))
+                    {
+                        <div class="alert alert-danger">@deleteTaskError</div>
+                    }
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" @onclick="() => taskToDelete = null">Cancel</button>
+                    <button type="button" class="btn btn-danger" @onclick="HandleDeleteTask" disabled="@isDeletingTask">
+                         @if(isDeletingTask) { <span class="spinner-border spinner-border-sm"></span> }
+                        Delete
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="modal-backdrop fade show"></div>
+}
+
 
 @code {
     [Parameter]
@@ -182,7 +283,6 @@ else
     private bool isCreatingColumn = false;
     private string? createColumnError;
 
-    // Dictionary to hold new task form models, one for each column
     private Dictionary<int, TaskCreateDto> newTaskForms = new Dictionary<int, TaskCreateDto>();
     private Dictionary<int, bool> isCreatingTaskInColumn = new Dictionary<int, bool>();
     private Dictionary<int, string?> createTaskErrorInColumn = new Dictionary<int, string?>();
@@ -207,7 +307,6 @@ else
     private bool isDeletingTask = false;
     private string? deleteTaskError;
 
-
     protected override async Task OnInitializedAsync()
     {
         await LoadProjectDetails();
@@ -228,7 +327,7 @@ else
                 {
                     newTaskForms[col.ColumnId] = new TaskCreateDto();
                 }
-                 if (!isCreatingTaskInColumn.ContainsKey(col.ColumnId)) // Initialize if not present
+                 if (!isCreatingTaskInColumn.ContainsKey(col.ColumnId))
                 {
                     isCreatingTaskInColumn[col.ColumnId] = false;
                 }
@@ -248,61 +347,54 @@ else
 
     private async Task HandleSaveProjectName()
     {
-        if (project == null || string.IsNullOrWhiteSpace(projectNameInput) || project.Name == projectNameInput)
-        {
-            return;
-        }
+        if (project == null || string.IsNullOrWhiteSpace(projectNameInput) || project.Name == projectNameInput) return;
         projectUpdateError = null;
         var updateDto = new ProjectUpdateDto { Name = projectNameInput };
         bool success = await ProjectService.UpdateProject(ProjectId, updateDto);
-        if (success)
-        {
-            project.Name = projectNameInput; // Update local state
-        }
-        else
-        {
-            projectUpdateError = "Failed to update project name.";
-            // Optionally revert projectNameInput to project.Name here
-        }
+        if (success) project.Name = projectNameInput;
+        else projectUpdateError = "Failed to update project name.";
     }
     
-    private void ConfirmDeleteProject()
-    {
-        projectToDelete = project; // Set the project to be deleted
-    }
+    private void ConfirmDeleteProject() => projectToDelete = project;
 
     private async Task HandleDeleteProject()
     {
         if (projectToDelete == null) return;
         isDeletingProject = true;
         bool success = await ProjectService.DeleteProject(projectToDelete.ProjectId);
-        if (success)
-        {
-            NavigationManager.NavigateTo("/"); // Navigate back to dashboard
-        }
+        if (success) NavigationManager.NavigateTo("/");
         else
         {
-            projectUpdateError = "Failed to delete project."; // Show error on current page
-            projectToDelete = null; // Close modal
+            projectUpdateError = "Failed to delete project.";
+            projectToDelete = null;
         }
         isDeletingProject = false;
     }
 
-
     private async Task HandleCreateColumn()
     {
         if (project == null) return;
+        // Client-side check for column limit before attempting to create
+        if (project.Columns.Count >= 10)
+        {
+            createColumnError = "Maximum number of columns (10) reached for this project.";
+            return;
+        }
+
         isCreatingColumn = true;
-        createColumnError = null;
+        createColumnError = null; // Clear previous error
         var createdColumn = await ColumnService.CreateColumn(ProjectId, newColumn);
         if (createdColumn != null)
         {
-            newColumn = new ColumnCreateDto(); // Reset form
-            await LoadProjectDetails(); // Refresh project details to show new column
+            newColumn = new ColumnCreateDto();
+            await LoadProjectDetails(); // Refresh project details
         }
-        else
+        else 
         {
-            createColumnError = "Failed to create column.";
+            // This error might be redundant if the API call itself returns a specific error message
+            // that the service layer can propagate. For now, a generic one.
+            // If API returns 400 with specific message, that should be handled by service/displayed.
+            createColumnError = "Failed to create column. The maximum limit may have been reached or an error occurred.";
         }
         isCreatingColumn = false;
     }
@@ -311,7 +403,7 @@ else
     {
         editingColumnId = column.ColumnId;
         editingColumnNameDto.Name = column.Name;
-        editingColumnNameDto.Order = column.Order; // Keep current order
+        editingColumnNameDto.Order = column.Order;
         updateColumnError = null;
         currentlyUpdatingColumnId = null;
     }
@@ -328,62 +420,42 @@ else
         if (project == null || editingColumnId == null) return;
         currentlyUpdatingColumnId = columnId;
         updateColumnError = null;
-
         bool success = await ColumnService.UpdateColumn(project.ProjectId, columnId, editingColumnNameDto);
         if (success)
         {
-            await LoadProjectDetails(); // Refresh
+            await LoadProjectDetails();
             CancelEditColumnName();
         }
-        else
-        {
-            updateColumnError = "Failed to update column name.";
-        }
+        else updateColumnError = "Failed to update column name.";
     }
 
-    private void ConfirmDeleteColumn(ColumnViewModel column)
-    {
-        columnToDelete = column;
-    }
+    private void ConfirmDeleteColumn(ColumnViewModel column) => columnToDelete = column;
 
     private async Task HandleDeleteColumn()
     {
         if (columnToDelete == null || project == null) return;
         isDeletingColumn = true;
         bool success = await ColumnService.DeleteColumn(project.ProjectId, columnToDelete.ColumnId);
-        if (success)
-        {
-            await LoadProjectDetails(); 
-        }
-        else
-        {
-            // Show error
-             projectUpdateError = $"Error deleting column {columnToDelete.Name}"; // Use project level error display
-        }
-        columnToDelete = null; 
+        if (success) await LoadProjectDetails();
+        else projectUpdateError = $"Error deleting column {columnToDelete.Name}";
+        columnToDelete = null;
         isDeletingColumn = false;
     }
-
 
     private async Task HandleCreateTask(int columnId)
     {
         if (!newTaskForms.TryGetValue(columnId, out var taskDto) || project == null) return;
-        
         isCreatingTaskInColumn[columnId] = true;
         createTaskErrorInColumn[columnId] = null;
-
         var createdTask = await TaskService.CreateTask(columnId, taskDto);
         if (createdTask != null)
         {
-            newTaskForms[columnId] = new TaskCreateDto(); 
-            await LoadProjectDetails(); 
+            newTaskForms[columnId] = new TaskCreateDto();
+            await LoadProjectDetails();
         }
-        else
-        {
-            createTaskErrorInColumn[columnId] = "Failed to create task.";
-        }
+        else createTaskErrorInColumn[columnId] = "Failed to create task.";
         isCreatingTaskInColumn[columnId] = false;
-        StateHasChanged(); 
+        StateHasChanged();
     }
 
     private void StartEditTask(TaskViewModel task)
@@ -395,8 +467,8 @@ else
             Title = task.Title,
             Description = task.Description,
             Deadline = task.Deadline,
-            ColumnId = task.ColumnId, // Keep current column by default
-            Order = task.Order // Keep current order by default
+            ColumnId = task.ColumnId,
+            Order = task.Order
         };
         showEditTaskModal = true;
         updateTaskError = null;
@@ -407,51 +479,124 @@ else
         if (taskToEdit == null) return;
         isUpdatingTask = true;
         updateTaskError = null;
-
         bool success = await TaskService.UpdateTask(taskToEdit.TaskId, taskUpdateModel);
         if (success)
         {
             showEditTaskModal = false;
             taskToEdit = null;
-            await LoadProjectDetails(); // Refresh
+            await LoadProjectDetails();
         }
-        else
-        {
-            updateTaskError = "Failed to update task.";
-        }
+        else updateTaskError = "Failed to update task.";
         isUpdatingTask = false;
     }
     
-    private void ConfirmDeleteTask(TaskViewModel task)
-    {
-        taskToDelete = task;
-    }
+    private void ConfirmDeleteTask(TaskViewModel task) => taskToDelete = task;
 
     private async Task HandleDeleteTask()
     {
         if (taskToDelete == null) return;
         isDeletingTask = true;
         deleteTaskError = null;
-
         bool success = await TaskService.DeleteTask(taskToDelete.TaskId);
         if (success)
         {
             taskToDelete = null;
-            await LoadProjectDetails(); // Refresh
+            await LoadProjectDetails();
         }
-        else
-        {
-            deleteTaskError = "Failed to delete task."; // This error won't be visible as modal closes
-            Console.WriteLine($"Error deleting task {taskToDelete.Title}"); // Log it
-             projectUpdateError = $"Error deleting task {taskToDelete.Title}"; // Use project level error display
-        }
-        taskToDelete = null; // ensure modal closes
+        else projectUpdateError = $"Error deleting task {taskToDelete.Title}";
+        taskToDelete = null;
         isDeletingTask = false;
     }
 
+    // Drag-and-Drop Logic
+    private async Task HandleTaskDrop(ColumnViewModel targetColumn, DragDropItemDropEventArgs<TaskViewModel> args)
+    {
+        var droppedTask = args.Item;
+        if (droppedTask == null || project == null || targetColumn == null)
+        {
+            Console.WriteLine("DragDrop Error: Essential item (task, project, or target column) is null.");
+            return;
+        }
+
+        ColumnViewModel? sourceColumn = project.Columns.FirstOrDefault(c => c.ColumnId == droppedTask.ColumnId);
+
+        if (sourceColumn == null)
+        {
+            Console.WriteLine($"DragDrop Error: Source column (ID: {droppedTask.ColumnId}) for dragged task (ID: {droppedTask.TaskId}) not found.");
+            await LoadProjectDetails(); // Attempt to recover
+            return;
+        }
+
+        // Optimistic UI Update
+        if (sourceColumn.ColumnId != targetColumn.ColumnId)
+        {
+            // Moved to a different column
+            var taskInSourceList = sourceColumn.Tasks.FirstOrDefault(t => t.TaskId == droppedTask.TaskId);
+            if (taskInSourceList != null) sourceColumn.Tasks.Remove(taskInSourceList);
+        }
+        else
+        {
+            // Reordered in the same column - remove first before re-inserting
+            var taskInSourceList = sourceColumn.Tasks.FirstOrDefault(t => t.TaskId == droppedTask.TaskId);
+             if (taskInSourceList != null) sourceColumn.Tasks.Remove(taskInSourceList);
+        }
+
+        // Add/Insert into target column's list at the drop index
+        if (args.IndexInZone >= 0 && args.IndexInZone <= targetColumn.Tasks.Count)
+        {
+            targetColumn.Tasks.Insert(args.IndexInZone, droppedTask);
+        }
+        else
+        {
+            targetColumn.Tasks.Add(droppedTask); // Fallback
+        }
+        
+        droppedTask.ColumnId = targetColumn.ColumnId; // Update task's column ID
+        
+        UpdateTaskOrders(sourceColumn); // Update orders in the source column (if different from target)
+        if(sourceColumn.ColumnId != targetColumn.ColumnId) {
+            UpdateTaskOrders(targetColumn); // Update orders in the target column
+        }
+        
+        StateHasChanged();
+
+        // API Call
+        if (sourceColumn.ColumnId == targetColumn.ColumnId)
+        {
+            var orderDto = new TaskOrderUpdateDto { TaskIdsInOrder = targetColumn.Tasks.Select(t => t.TaskId).ToList() };
+            bool success = await TaskService.ReorderTasks(targetColumn.ColumnId, orderDto);
+            if (!success)
+            {
+                Console.WriteLine($"API Error: Failed to reorder tasks in column {targetColumn.ColumnId}.");
+                await LoadProjectDetails(); // Revert
+            }
+        }
+        else
+        {
+            int newOrderInColumn = targetColumn.Tasks.IndexOf(droppedTask);
+            if (newOrderInColumn < 0) newOrderInColumn = targetColumn.Tasks.Count > 0 ? targetColumn.Tasks.Count -1 : 0;
+
+            var moveDto = new TaskMoveDto { TargetColumnId = targetColumn.ColumnId, NewOrderInColumn = newOrderInColumn };
+            bool success = await TaskService.MoveTask(droppedTask.TaskId, moveDto);
+            if (!success)
+            {
+                Console.WriteLine($"API Error: Failed to move task {droppedTask.TaskId} to column {targetColumn.ColumnId}.");
+                await LoadProjectDetails(); // Revert
+            }
+        }
+    }
+
+    private void UpdateTaskOrders(ColumnViewModel column)
+    {
+        if (column?.Tasks == null) return;
+        for (int i = 0; i < column.Tasks.Count; i++)
+        {
+            if(column.Tasks[i] != null) column.Tasks[i].Order = i;
+        }
+    }
 }
 
-@* Edit Task Modal *@
+@* Edit Task Modal (remains the same) *@
 @if (showEditTaskModal && taskToEdit != null)
 {
     <div class="modal fade show d-block" tabindex="-1" role="dialog">

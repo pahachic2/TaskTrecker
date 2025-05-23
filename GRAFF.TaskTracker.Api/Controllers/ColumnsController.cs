@@ -129,9 +129,18 @@ namespace GRAFF.TaskTracker.Api.Controllers
                 return Forbid("You do not have access to this project or it does not exist.");
             }
 
-            var project = await _context.Projects.Include(p => p.Columns).FirstOrDefaultAsync(p => p.ProjectId == projectId);
-            if (project == null) return NotFound(new { Message = $"Project with ID {projectId} not found."});
+            var project = await _context.Projects.Include(p => p.Columns).FirstOrDefaultAsync(p => p.ProjectId == projectId && p.OwnerUserId == userId);
+            if (project == null) 
+            {
+                // This check is slightly redundant if ProjectBelongsToUser is called first and is accurate,
+                // but it's good for confirming the project load itself.
+                return NotFound(new { Message = $"Project with ID {projectId} not found or you do not have access."});
+            }
 
+            if (project.Columns.Count >= 10)
+            {
+                return BadRequest(new { Message = "Maximum number of columns (10) reached for this project." });
+            }
 
             var column = new Column
             {
